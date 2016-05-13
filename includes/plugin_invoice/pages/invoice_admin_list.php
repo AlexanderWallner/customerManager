@@ -399,13 +399,13 @@ if(!isset($_REQUEST['customer_id']) && module_customer::can_i('view','Customers'
 $columns['c_invoice_total'] = array(
     'title' => 'Invoice Total',
     'callback' => function($invoice){
-        echo dollar(ceil($invoice['total_amount']),true,$invoice['currency_id']);
+        echo dollar(round($invoice['total_amount'], module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']);
     },
 );
 $columns['c_invoice_total_due'] = array(
     'title' => 'Amount Due',
     'callback' => function($invoice){
-        echo dollar(ceil($invoice['total_amount_due'],0),true,$invoice['currency_id']);?>
+        echo dollar(round($invoice['total_amount_due'],module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']);?>
         <?php if($invoice['total_amount_credit'] >=1){ ?>
         <span class="success_text"><?php echo _l('Credit: %s',dollar($invoice['total_amount_credit'],true,$invoice['currency_id']));?></span>
             <?php
@@ -417,7 +417,7 @@ $columns['c_balance'] = array(
     'callback' => function($invoice){ 
          if($invoice['total_amount']-$invoice['total_amount_due'] != 0){ 
          
-            echo dollar(ceil($invoice['total_amount']-$invoice['total_amount_due']),true,$invoice['currency_id']);}
+            echo dollar(round($invoice['total_amount']-$invoice['total_amount_due'], module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']);}
                 
     },
 );

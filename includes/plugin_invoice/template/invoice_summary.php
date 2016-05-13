@@ -219,7 +219,7 @@ if(count($invoice['fees'])){
 }
 $rows[]=array(
     'label'=>_l('Summe Total:'),
-    'value'=>'<span class="currency" style="text-decoration: underline; font-weight: bold;">'.dollar(ceil($invoice['total_amount']+($invoice['total_amount_deposits']+$invoice['total_amount_deposits_tax'])),true,$invoice['currency_id']).'</span>',
+    'value'=>'<span class="currency" style="text-decoration: underline; font-weight: bold;">'.dollar(round($invoice['total_amount']+($invoice['total_amount_deposits']+$invoice['total_amount_deposits_tax']), module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>',
 );
 
 if($invoice['total_amount_deposits']>0){
@@ -229,7 +229,7 @@ if($invoice['total_amount_deposits']>0){
     );
     $rows[]=array(
         'label'=>_l('Summe Total:'),
-        'value'=>'<span class="currency" style="text-decoration: underline; font-weight: bold;">'.dollar(ceil($invoice['total_amount']),true,$invoice['currency_id']).'</span>',
+        'value'=>'<span class="currency" style="text-decoration: underline; font-weight: bold;">'.dollar(round($invoice['total_amount'], module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>',
     );
 }
 foreach($rows as $row){ ?>
@@ -303,7 +303,7 @@ if(isset($invoice['credit_note_id']) && $invoice['credit_note_id']){ ?>
     </td>
     <td style="font-family: arial,helvetica,sans-serif; font-size: 11px; text-align: right;"  width="14%">
         <span class="currency" style="text-decoration: underline; font-weight: bold; color:#FF0000;">
-              <?php echo dollar(ceil($invoice['total_amount_due']),true,$invoice['currency_id']);?>
+              <?php echo dollar(round($invoice['total_amount_due'], module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']);?>
         </span>
      </td>
 </tr>

@@ -839,7 +839,7 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
          ob_start();
          ?>
             <div class="tableclass_form content">
-                <p align="center"><?php echo _l('This invoice has not been paid by the due date and %s is now overdue.',dollar(ceil($invoice['total_amount_due']),true,$invoice['currency_id'])); ?></p>
+                <p align="center"><?php echo _l('This invoice has not been paid by the due date and %s is now overdue.',dollar(round($invoice['total_amount_due'], module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id'])); ?></p>
                 <?php if($invoice['date_sent'] && $invoice['date_sent']!='0000-00-00'){
                     $secs = date("U") - date("U",strtotime($invoice['date_sent']));
                     $days = $secs/86400;
@@ -1467,16 +1467,16 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
                             
                             $rows[]=array(
                                 'label'=>_l('Sub:'),
-                                'value'=>'<span class="currency">'.dollar(ceil($invoice['total_sub_amount']+$invoice['discount_amount']),true,$invoice['currency_id']).'</span>'
+                                'value'=>'<span class="currency">'.dollar(round($invoice['total_sub_amount']+$invoice['discount_amount'], module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>'
                             );
                             if($invoice['discount_amount']>0){
                                 $rows[]=array(
                                     'label'=> htmlspecialchars(_l($invoice['discount_description'])),
-                                    'value'=> '<span class="currency">'.dollar(ceil($invoice['discount_amount']),true,$invoice['currency_id']).'</span>'
+                                    'value'=> '<span class="currency">'.dollar(round($invoice['discount_amount'], module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>'
                                 );
                                 $rows[]=array(
                                     'label'=>_l('Sub:'),
-                                    'value'=>'<span class="currency">'.dollar(ceil($invoice['total_sub_amount']),true,$invoice['currency_id']).'</span>'
+                                    'value'=>'<span class="currency">'.dollar(round($invoice['total_sub_amount'],module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>'
                                 );
                             }
                             if(!$hide_tax){
@@ -1492,7 +1492,7 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
                         }else if($invoice['discount_type']==_DISCOUNT_TYPE_AFTER_TAX){
                             $rows[]=array(
                                 'label'=>_l('Sub:'),
-                                'value'=>'<span class="currency">'.dollar(ceil($invoice['total_sub_amount']),true,$invoice['currency_id']).'</span>'
+                                'value'=>'<span class="currency">'.dollar(round($invoice['total_sub_amount'],module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>'
                             );
                             if(!$hide_tax){
                                 foreach($invoice['taxes'] as $invoice_tax){
@@ -1504,7 +1504,7 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
                                 }
                                 $rows[]=array(
                                     'label'=>_l('Sub:'),
-                                    'value'=>'<span class="currency">'.dollar(ceil($invoice['total_sub_amount']+$invoice['total_tax']),true,$invoice['currency_id']).'</span>',
+                                    'value'=>'<span class="currency">'.dollar(round($invoice['total_sub_amount']+$invoice['total_tax'],module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>',
                                 );
                             }
                             if($invoice['discount_amount']>0){ //if(($discounts_allowed || $invoice['discount_amount']>0) &&  (!($invoice_locked && module_security::is_page_editable()) || $invoice['discount_amount']>0)){
@@ -1528,7 +1528,7 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
                         $total = $invoice['total_amount']+($invoice['total_amount_deposits']+$invoice['total_amount_deposits_tax']);
                         $rows[]=array(
                             'label'=>_l('Total:'),
-                            'value'=>'<span class="currency" style="text-decoration: underline; font-weight: bold;">'.dollar(ceil($total),true,$invoice['currency_id']).'</span>',
+                            'value'=>'<span class="currency" style="text-decoration: underline; font-weight: bold;">'.dollar(round($total,module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']).'</span>',
                         );
 
                         if($invoice['total_amount_deposits']>0){
@@ -1576,7 +1576,7 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
                             </td>
                             <td>
                                 <span class="currency success_text">
-                                    <?php echo dollar(ceil($invoice['total_amount_paid']),true,$invoice['currency_id']);?>
+                                    <?php echo dollar(round($invoice['total_amount_paid'],module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']);?>
                                 </span>
                             </td>
                             <td colspan="2">
@@ -1592,7 +1592,7 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
                             </td>
                             <td>
                                 <span class="currency error_text">
-                                    <?php echo dollar(ceil($invoice['total_amount_due']),true,$invoice['currency_id']);?>
+                                    <?php echo dollar(round($invoice['total_amount_due'],module_config::c('round_number'), module_config::c('php_round')),true,$invoice['currency_id']);?>
                                 </span>
                             </td>
                             <td colspan="2">
@@ -1684,7 +1684,7 @@ $default_payment_method = module_config::c('invoice_default_payment_method','pay
                                                 echo print_select_box(module_invoice::get_payment_methods(),'invoice_invoice_payment[new][method]',module_config::s('invoice_payment_default_method','Überweisung'),'',true,false,false); ?>
                                             </td>
                                             <td nowrap="">
-                                                <?php echo '<input type="text" name="invoice_invoice_payment[new][amount]" value="'.number_out(ceil($invoice['total_amount_due'])).'" id="newinvoice_paymentamount" class="currency">';?>
+                                                <?php echo '<input type="text" name="invoice_invoice_payment[new][amount]" value="'.number_out(round($invoice['total_amount_due']),module_config::c('round_number'), module_config::c('php_round')).'" id="newinvoice_paymentamount" class="currency">';?>
                                                 <?php echo print_select_box(get_multiple('currency','','currency_id'),'invoice_invoice_payment[new][currency_id]',$invoice['currency_id'],'',false,'code'); ?>
                                             </td>
                                             <td>
