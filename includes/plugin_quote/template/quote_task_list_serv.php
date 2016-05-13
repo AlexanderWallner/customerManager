@@ -1,0 +1,320 @@
+<?php 
+/** 
+  * Copyright: dtbaker 2012
+  * Licence: Please check CodeCanyon.net for licence details. 
+  * More licence clarification available here:  http://codecanyon.net/wiki/support/legal-terms/licensing-terms/ 
+  * Deploy: 7736 9b9da523f8242d524bc0edab9f79a2e4
+  * Envato: ef2d6ec4-fa40-41b6-9980-24587c1aaf55, 92d36d3b-0276-47ef-93d8-00df5dc17d5e, 3dac064b-a466-4931-93f0-51c086616894, 0b59530f-164b-4ec2-975b-6a3038423838, 7c3ba354-e0b5-4f02-8a97-854fab16f4b1, c1fe4c24-77fe-44eb-a399-426ebdf540b9, ef74c493-5050-4b88-9be1-92e54c0e34aa, a59dba67-f1e1-4085-943c-c3ded9fc5667, c46a4f2a-d54d-4778-9c2d-c61f41691e34, 68ccf1c5-a309-443a-b04e-69d266cb348f
+  * Package Date: 2015-02-04 02:18:43 
+  * IP Address: 185.17.207.14
+  */
+
+// UPDATE::: to edit the "quote task list" please go to Settings > Templates and look for the new "quote_task_list" entry.
+
+if(!isset($quote)&&isset($quote_data))$quote = $quote_data;
+$table_tasks = module_quote::get_quote_serv_items($quote_id,$quote);
+
+if(count($table_tasks)){
+
+ob_start();
+?>
+<table cellpadding="4" cellspacing="0" style="width:100%" class="table tableclass tableclass_rows">
+	<thead>
+		<tr class="task_header">
+            <th style="width:5%; text-align:center">
+				#
+			</th>
+			<th  style="width:47%; text-align:center">
+				{l:Description}
+			</th>
+			<th style="width:10%; text-align:center">
+                {TITLE_QTY_OR_HOURS}
+			</th>
+			<th style="width:14%; text-align:center">
+                {TITLE_AMOUNT_OR_RATE}
+			</th>
+			<th style="width:14%; text-align:center">
+				{l:Sub-Total}
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+        <tr class="{ITEM_ODD_OR_EVEN}" data-item-row="true">
+            <td style="text-align:center">
+                {ITEM_NUMBER}
+            </td>
+            <td>
+                {ITEM_DESCRIPTION}
+            </td>
+            <td align="center">
+                {ITEM_QTY_OR_HOURS}
+            </td>
+            <td style="text-align: right;">
+                {ITEM_AMOUNT_OR_RATE}
+            </td>
+            <td style="text-align: right;">
+                {ITEM_TOTAL}
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="5">&nbsp;</td>
+        </tr>
+        {QUOTE_SUMMARY}
+    </tfoot>
+</table>
+
+<?php
+module_template::init_template('quote_task_list_serv',ob_get_clean(),'Used when displaying the quote tasks.','code');
+$t = module_template::get_template_by_key('quote_task_list_serv');
+
+
+$replace = array();
+
+if($quote['default_task_type']==_TASK_TYPE_AMOUNT_ONLY){
+    $replace['title_qty_or_hours'] = '';
+}else if($quote['default_task_type']==_TASK_TYPE_QTY_AMOUNT){
+    $replace['title_qty_or_hours'] = _l(module_config::c('task_qty_name','Qty'));
+}else if($quote['default_task_type']==_TASK_TYPE_HOURS_AMOUNT){
+    $replace['title_qty_or_hours'] = _l(module_config::c('task_hours_name','Hours'));
+}
+if($quote['default_task_type']==_TASK_TYPE_AMOUNT_ONLY){
+    $replace['title_amount_or_rate'] = _l(module_config::c('quote_amount_name','Amount'));
+}else if($quote['default_task_type']==_TASK_TYPE_QTY_AMOUNT){
+    $replace['title_amount_or_rate'] = _l(module_config::c('quote_amount_name','Amount'));
+}else if($quote['default_task_type']==_TASK_TYPE_HOURS_AMOUNT){
+    $replace['title_amount_or_rate'] = _l(module_config::c('quote_rate_name','Rate'));
+}
+
+
+
+if(preg_match('#<tr[^>]+data-item-row="true">.*</tr>#imsU',$t->content,$matches)){
+    $item_row_html = $matches[0];
+    $colspan = substr_count($item_row_html,'<td') - 2;
+    $t->content = str_replace($item_row_html, '{ITEM_ROW_CONTENT}', $t->content);
+}else{
+    //set_error('Please ensure a TR with data-item-row="true" is in the quote_task_list template');
+    $item_row_html = '';
+    $colspan = 4;
+}
+
+
+
+ob_start();
+/* copied from quote_admin_edit.php
+todo: move this into a separate method or something so they can both share updates easier
+*/
+$rows = array();
+// we hide quote tax if there is none
+$hide_tax = true;
+foreach($quote['taxes'] as $quote_tax){
+    if($quote_tax['percent']>0){
+        $hide_tax=false;
+        break;
+    }
+}
+if($quote['total_sub_amount_unbillable']){
+    //$rows[]=array(
+       // 'label'=>_l('Sub Total:'),
+       // 'value'=>'<span class="currency">'.dollar($quote['total_sub_amount']+$quote['total_sub_amount_unbillable'],true,$quote['currency_id']).'</span>'
+   // );
+   // $rows[]=array(
+      //  'label'=>_l('Unbillable:'),
+      //  'value'=>'<span class="currency">'.dollar($quote['total_sub_amount_unbillable'],true,$quote['currency_id']).'</span>'
+   // );
+}
+if(isset($quote['discount_type'])){
+    if($quote['discount_type']==_DISCOUNT_TYPE_BEFORE_TAX){
+      //  $rows[]=array(
+         //   'label'=>_l('Sub Total:'),
+          //  'value'=>'<span class="currency">'.dollar($quote['total_sub_amount']+$quote['discount_amount'],true,$quote['currency_id']).'</span>'
+        //);
+        if($quote['discount_amount']>0){
+            //$rows[]=array(
+               // 'label'=> htmlspecialchars(_l($quote['discount_description'])),
+               // 'value'=> '<span class="currency">'.dollar($quote['discount_amount'],true,$quote['currency_id']).'</span>'
+           // );
+           // $rows[]=array(
+              //  'label'=>_l('Sub Total:'),
+               // 'value'=>'<span class="currency">'.dollar($quote['total_sub_amount'],true,$quote['currency_id']).'</span>'
+            //);
+        }
+        if(!$hide_tax){
+            foreach($quote['taxes'] as $quote_tax){
+               // $rows[]=array(
+                   // 'label'=>$quote_tax['name'].' '.number_out($quote_tax['percent'], module_config::c('tax_trim_decimal', 1), module_config::c('tax_decimal_places',module_config::c('currency_decimal_places',2))).'%',
+                   // 'value'=>'<span class="currency">'.dollar($quote_tax['amount'],true,$quote['currency_id']).'</span>',
+                    //'extra'=>$quote_tax['name'] . ' = '.$quote_tax['rate'].'%',
+                //);
+            }
+        }
+
+    }else if($quote['discount_type']==_DISCOUNT_TYPE_AFTER_TAX){
+       // $rows[]=array(
+           // 'label'=>_l('Sub Total:'),
+           // 'value'=>'<span class="currency">'.dollar($quote['total_sub_amount'],true,$quote['currency_id']).'</span>'
+       // );
+        if(!$hide_tax){
+            foreach($quote['taxes'] as $quote_tax){
+           //     $rows[]=array(
+               //     'label'=>$quote_tax['name'].' '.number_out($quote_tax['percent'], module_config::c('tax_trim_decimal', 1), module_config::c('tax_decimal_places',module_config::c('currency_decimal_places',2))).'%',
+                   // 'value'=>'<span class="currency">'.dollar($quote_tax['amount'],true,$quote['currency_id']).'</span>',
+                    //'extra'=>$quote_tax['name'] . ' = '.$quote_tax['percent'].'%',
+               // );
+            }
+           // $rows[]=array(
+              //  'label'=>_l('Sub Total:'),
+              //  'value'=>'<span class="currency">'.dollar($quote['total_sub_amount']+$quote['total_tax'],true,$quote['currency_id']).'</span>',
+           // );
+        }
+        if($quote['discount_amount']>0){ //if(($discounts_allowed || $quote['discount_amount']>0) &&  (!($quote_locked && module_security::is_page_editable()) || $quote['discount_amount']>0)){
+          //  $rows[]=array(
+             //   'label'=> htmlspecialchars(_l($quote['discount_description'])),
+               // 'value'=> '<span class="currency">'.dollar($quote['discount_amount'],true,$quote['currency_id']).'</span>'
+           // );
+        }
+    }
+}else{
+    if(!$hide_tax){
+        //$rows[]=array(
+          //  'label'=>_l('Sub Total:'),
+           // 'value'=>'<span class="currency">'.dollar($quote['total_sub_amount'],true,$quote['currency_id']).'</span>',
+        //);
+        foreach($quote['taxes'] as $quote_tax){
+           // $rows[]=array(
+               // 'label'=>$quote_tax['name'].' '.$quote_tax['percent'].'%',
+                //'value'=>'<span class="currency">'.dollar($quote_tax['amount'],true,$quote['currency_id']).'</span>',
+              //  'extra'=>$quote_tax['name'] . ' = '.$quote_tax['percent'].'%',
+            //);
+        }
+    }
+}
+
+//$rows[]=array(
+   // 'label'=>_l('Total:'),
+   // 'value'=>'<span class="currency" style="text-decoration: underline; font-weight: bold;">'.dollar($quote['total_amount'],true,$quote['currency_id']).'</span>',
+//);
+
+foreach($rows as $row){ ?>
+<tr>
+    <td colspan="<?php echo $colspan;?>">
+        &nbsp;
+    </td>
+    <td>
+        <?php echo $row['label'];?>
+    </td>
+    <td style="text-align: right;">
+        <?php echo $row['value'];?>
+    </td>
+</tr>
+<?php }
+
+$replace['quote_summary'] = ob_get_clean();
+
+
+/* START QUOTE LINE ITEMS */
+
+$task_decimal_places = module_config::c('task_amount_decimal_places',-1);
+if($task_decimal_places < 0){
+    $task_decimal_places = false; // use default currency dec places.
+}
+$task_decimal_places_trim = module_config::c('task_amount_decimal_places_trim',0);
+
+
+$all_item_row_html = '';
+$item_count = 0;// changed from 1
+foreach(module_quote::get_quote_serv_items($quote_id,$quote) as $quote_item_id => $quote_item_data){
+
+    $row_replace = array(
+        'item_odd_or_even' => $item_count++%2 ? 'odd' : 'even',
+        'item_number' => '',
+        'item_description' => '',
+        //'item_date' => '',
+        'item_tax' => 0,
+        'item_tax_rate' => '',
+    );
+
+    //if(isset($quote_item_data['task_order']) && $quote_item_data['task_order']>0){
+       // $row_replace['item_number'] = $quote_item_data['task_order'];
+   // }else{
+        $row_replace['item_number'] = $item_count;
+  //  }
+    $row_replace['item_description'] .= htmlspecialchars($quote_item_data['description']);
+    if(module_config::c('quote_show_long_desc',1)){
+        $long_description =htmlspecialchars($quote_item_data['long_description']);
+        if($long_description!=''){
+            $row_replace['item_description'] .= '<br/><em>'.forum_text($long_description).'</em>';
+        }
+    }
+
+    /*if(isset($quote_item_data['date_done']) && $quote_item_data['date_done'] != '0000-00-00'){
+        $row_replace['item_date'] .= print_date($quote_item_data['date_done']);
+    }else{
+        // check if this is linked to a task.
+        if($quote_item_data['quote_task_id']){
+            $task = get_single('quote_task','quote_task_id',$quote_item_data['quote_task_id']);
+            if($task && isset($task['date_done']) && $task['date_done'] != '0000-00-00'){
+                $row_replace['item_date'] .= print_date($task['date_done']);
+            }else{
+                // check if quote has a date.
+                if(isset($quote['date_create']) && $quote['date_create'] != '0000-00-00'){
+                    $row_replace['item_date'] .= print_date($quote['date_create']);
+                }
+            }
+        }
+    }*/
+    if($quote_item_data['manual_task_type']==_TASK_TYPE_AMOUNT_ONLY){
+        $row_replace['item_qty_or_hours'] = '-';
+    }else{
+	    if($quote_item_data['manual_task_type'] == _TASK_TYPE_HOURS_AMOUNT && function_exists('decimal_time_out')){
+            $hours_value = decimal_time_out($quote_item_data['hours']);
+        }else {
+            $hours_value = number_out( $quote_item_data['hours'], true );
+        }
+        $row_replace['item_qty_or_hours'] = $hours_value ? $hours_value : '-';
+    }
+    if($quote_item_data['task_hourly_rate']!=0){
+        $row_replace['item_amount_or_rate'] = dollar($quote_item_data['task_hourly_rate'],true,$quote['currency_id'],$task_decimal_places_trim,$task_decimal_places);
+    }else{
+        $row_replace['item_amount_or_rate'] = '-';
+    }
+    $row_replace['item_total'] = dollar($quote_item_data['quote_item_amount'],true,$quote['currency_id']);
+
+    // taxes per item
+    if(isset($quote_item_data['taxes']) && is_array($quote_item_data['taxes']) && $quote_item_data['taxable'] && class_exists('module_finance',false)){
+        // this passes off the tax calculation to the 'finance' class, which modifies 'amount' to match the amount of tax applied here.
+        $this_taxes = module_finance::sanatise_taxes($quote_item_data['taxes'],$quote_item_data['quote_item_amount']);
+        $this_taxes_amounts = array();
+        $this_taxes_rates = array();
+        if(!count($this_taxes)){
+            $this_taxes = array(
+                'amount' => 0,
+                'percent' => 0,
+            );
+        }
+        foreach($this_taxes as $this_tax){
+            $this_taxes_amounts[] = dollar($this_tax['amount'],true,$quote['currency_id']);
+            $this_taxes_rates[] = $this_tax['percent'].'%';
+        }
+        $row_replace['item_tax'] = implode(', ',$this_taxes_amounts);
+        $row_replace['item_tax_rate'] = implode(', ',$this_taxes_rates);
+    }
+
+    $this_item_row_html = $item_row_html;
+    $this_item_row_html = str_replace(' data-item-row="true"','',$this_item_row_html);
+    foreach($row_replace as $key=>$val){
+        $this_item_row_html = str_replace('{'.strtoupper($key).'}', $val, $this_item_row_html);
+    }
+    $all_item_row_html .= $this_item_row_html;
+}
+
+
+$replace['ITEM_ROW_CONTENT'] = $all_item_row_html;
+$t->assign_values($replace);
+echo $t->render();
+
+if(isset($row_replace) && count($row_replace)){
+    module_template::add_tags('quote_task_list_serv',$row_replace);
+}
+} 

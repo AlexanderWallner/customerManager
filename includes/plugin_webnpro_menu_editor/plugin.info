@@ -1,0 +1,8 @@
+[info]
+fullname = webNpro Menu Editor
+modulename = webnpro_menu_editor
+version = 1.0
+id = 001
+link = http://webnpro.com
+documentation = http://webnpro.com/documentation/webnpro-ucm-plugin-menu-editor/
+support = mailto:support@webnpro.com
