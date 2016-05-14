@@ -1340,7 +1340,7 @@ Job: <strong>{JOB_NAME}</strong> <br/>
         ));
 
         $data['total_amount'] = dollar($invoice_data['total_amount'],true,$invoice_data['currency_id']);
-        $data['total_amount_due'] = dollar(ceil($invoice_data['total_amount_due']),true,$invoice_data['currency_id']);
+        $data['total_amount_due'] = dollar($invoice_data['total_amount_due'],true,$invoice_data['currency_id']);
         $data['total_amount_paid'] = dollar($invoice_data['total_amount_paid'],true,$invoice_data['currency_id']);
         $data['date_paid'] = print_date($invoice_data['date_paid']);
         $data['date_due'] = print_date($invoice_data['date_due']);
@@ -1826,12 +1826,12 @@ $sql = "SELECT `"._DB_PREFIX."invoice`.`invoice_id`, `"._DB_PREFIX."invoice`.`na
 			//$where .= "OR  u.url LIKE '%$str%'  ";
 			$where .= ' ) ';
 		}
-                if(isset($search['gen']) && $search['gen']){
-			$str = mysql_real_escape_string($search['gen']);
-			$where .= " AND ( ";
-			$where .= " c.customer_name LIKE '%$str%' ";
-			$where .= ' ) ';
-		}
+        if(isset($search['gen']) && $search['gen']){
+            $str = mysql_real_escape_string($search['gen']);
+            $where .= " AND ( ";
+            $where .= " c.customer_name LIKE '%$str%' ";
+            $where .= ' ) ';
+        }
         foreach(array('customer_id','status','name','date_paid','date_due','renew_invoice_id','credit_note_id','website_id') as $key){
             if(isset($search[$key]) && $search[$key] !== ''&& $search[$key] !== false){
                 $str = mysql_real_escape_string($search[$key]);
@@ -3481,7 +3481,7 @@ $sql = "SELECT `"._DB_PREFIX."invoice`.`invoice_id`, `"._DB_PREFIX."invoice`.`na
         if($invoice['discount_type']==_DISCOUNT_TYPE_AFTER_TAX){
             $invoice['total_amount'] -= $invoice['discount_amount'];
         }
-        $invoice['total_amount'] = round($invoice['total_amount'],module_config::c('currency_decimal_places',2));
+        $invoice['total_amount'] = round($invoice['total_amount'],module_config::c('round_number'), module_config::c('php_round'));
 
         $invoice['overdue'] = ($invoice['date_due'] && $invoice['date_due']!='0000-00-00') && (!$invoice['date_paid'] || $invoice['date_paid'] == '0000-00-00') && strtotime($invoice['date_due']) < strtotime(date('Y-m-d'));
 

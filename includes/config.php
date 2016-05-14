@@ -2,7 +2,7 @@
 
 //Ultimate Client Manager - config file
 
-define('_DB_SERVER','localhost');
+define('_DB_SERVER','81.169.230.122');
 define('_DB_NAME','om');
 define('_DB_USER','test');
 define('_DB_PASS','ale3wu!sbe');
